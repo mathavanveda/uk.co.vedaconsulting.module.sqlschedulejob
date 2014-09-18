@@ -7,19 +7,48 @@
  * @return string
  */
 function civicrm_api3_sqlschedulejob_run() {
-    $sqlColumnName     = CUSTOM_SQL_SCHEDULE_SETTING_SQL_COLUMNNAME;
-    $aAllSettingsSqls = _get_all_schedule_settings_sql_from_table();
+    $sqlColumnName      = CUSTOM_SQL_SCHEDULE_SETTING_SQL_COLUMNNAME;
+    $aAllSettingsSqls   = _get_all_schedule_settings_sql_from_table();
     foreach( $aAllSettingsSqls as $settingSQLs ){
-        $aSqls[] = $settingSQLs[$sqlColumnName];
+        $tempsplit = explode(";", $settingSQLs[$sqlColumnName]);
+        foreach( $tempsplit as $splitedSQL ){
+          $aSqls[] = $splitedSQL;
+        }
     }
-    $sToExecute = implode('; ', $aSqls);
-    if(!empty($sToExecute)){
-        CRM_Core_DAO::executeQuery($sToExecute);
-        CRM_Core_Session::setStatus("Success");
-    }else{
-        CRM_Core_Session::setStatus("No SQL Settings can be stored.. Please Redirect to <baseURL>/civicrm/sql_schedule_settings");
+    
+    #EXECUTE ALL SQLS
+    foreach($aSqls as $sql){
+      try{
+        checkNullvalues($sql);
+        CRM_Core_DAO::executeQuery($sql);
+      }catch(Exception $e){
+        CRM_Core_Error::debug_log_message($e->getMessage());
+      }
     }
+    
+//    $DBParams   = $GLOBALS['_DB_DATAOBJECT']['CONNECTIONS'];
+//    $oDBValues  = array_values($DBParams);
+//    $DBValues   = $oDBValues[0]->dsn;
+//    mysql_connect($DBValues['hostspec'],  $DBValues['username'], $DBValues['password'], true, 65536) or die("cannot connect");
+//    mysql_select_db($DBValues['database']) or die("cannot use database");
+//    $sToExecute = implode('; ', $aSqls);
+
+//    if(!empty($sToExecute)){
+//        die(mysql_error());
+//        CRM_Core_Session::setStatus("Success");
+//    }else{
+//        CRM_Core_Session::setStatus("No SQL Settings can be stored.. Please Redirect to <baseURL>/civicrm/sql_schedule_settings");
+//    }
+    
     return ;
+}
+
+function checkNullvalues($str){
+  if(empty($str)){
+    throw new CRM_Core_Exception("No SQL String found, Null String.");
+  }
+  
+  return true;
 }
 
 function _get_all_schedule_settings_sql_from_table(){

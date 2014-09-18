@@ -8,6 +8,7 @@
 	<p>
 	{ts}Use this form to add/edit SQLs to be executed using CiviCRM Scheduled Jobs.
 	<br /><br /><strong>IMPORTANT:</strong> Make sure you validate the SQL for any syntax errors before adding here.
+	<br /><br /> Can Use ';' to add mulitple sql. 
 	{/ts}
 	</p>
 </div>
